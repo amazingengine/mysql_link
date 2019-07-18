@@ -1,0 +1,48 @@
+= 事前準備
+
+1. `.env.example` をコピーして `.env` にリネームする。
+
+1. `.env` を編集する。
+
+= クイックスタート
+
+まず初めに `docker-compose build` としてbuildしてください。`src` ディレクトリにPythonコードを入れてってください。Docker Composeでimageの作成、containerの起動まで行いますのでカレントディレクトリをdocker-compose.ymlのある場所まで移動してから `docker-compose up -d` にて立ち上げてください。 +
+
+`docker-compose exec mysql mysql -u root -p` として実行してください。 `.env` の `mysql_root_password` に記載しているパスワードになります。mysqlクライアントに接続できるので色々と実行してみてください。なお、永続ボリュームを使用しているのでMySQLのデータは残ります。永続ストレージを消す方法は `docker-compose down -v` です。 +
+
+`docker-compose exec python sh` としてpythonコンテナ内に入ってpythonコマンドを使用してください。 pythonのverは `.env` の `python_version` です。 `python/requirements.txt` に入ってるモジュールがあります。 +
+
+= ディレクトリ構成
+
+....
+├── README.adoc # 今見ているこのドキュメント
+├── db # mysqlサービスを構築するためのデータを扱うディレクトリ
+├── docker-compose.yml # docker-composeを行うためのファイル
+├── python # pythonサービスを構築するためのデータを扱うディレクトリ
+└── src # プログラムファイルを入れるディレクトリ
+....
+
+= pythonサービスと環境変数
+
+Pythonサービスには `MYSQL_HOST` という環境変数にmysqlサービスのホストネームが格納されています。 `MYSQL_ROOT_PASSWORD` にはrootユーザーのパスワードが格納されています。pythonから環境変数を取得する場合は `os.getenv('MYSQL_HOST')` 等で取得してあげてください。 +
+
+= pythonの外部モジュールを更新したい場合
+
+外部モジュールはDockerイメージをビルドする際に `python/requirements.txt` を使用してインストールを実施しています。外部モジュールを新たに追加したい場合は `python/requirements.txt` を更新した上で改めて `docker-compose build` としてください。 +
+
+= MySQLに初期データを入れたい場合
+
+`db/entrypoint` に `SQLファイル` を格納してください。sql文が実行されスキーマなどが作成されます。ただし、MySQL内にデータがある場合は実行されません。 `docker-compose down -v` でVolumeを削除すれば実行されます。
+
+`例`
+....
+CREATE DATABASE hoge;
+USE hoge;
+CREATE TABLE piyo_table (
+    id int,
+    txt varchar(30)
+);
+INSERT INTO piyo_table (id, txt) VALUES (
+    1, "hogehogeだよ"
+)
+....

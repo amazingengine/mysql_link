@@ -1,0 +1,32 @@
+version: '3'
+services:
+    mysql:
+        container_name: ${mysql_hostname} 
+        build: 
+            context: ./db
+            args: 
+             - mysql_version=${mysql_version}
+        environment:
+            - MYSQL_ROOT_PASSWORD=${mysql_root_password}
+            - TZ=Asia/Tokyo
+        volumes:
+            - "./db/entrypoint:/docker-entrypoint-initdb.d"
+            - "PermanentVolume:/var/lib/mysql"
+
+    python:
+        container_name: ${python_hostname} 
+        build:
+            context: ./python
+            args: 
+             - python_version=${python_version}
+             - alpine_version=${alpine_version} 
+        environment:
+            - TZ=Asia/Tokyo
+            - MYSQL_HOST=${mysql_hostname}
+            - MYSQL_ROOT_PASSWORD=${mysql_root_password}
+        volumes:
+             - ./src:/var/src
+        tty: true
+
+volumes:
+    PermanentVolume:
